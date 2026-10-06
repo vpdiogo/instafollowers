@@ -25,7 +25,7 @@ const translations = {
     dropzoneTitle: 'Arraste seu ZIP aqui',
     dropzoneDescription: 'ou clique para selecionar',
     fileHelpTitle: 'O que o ZIP precisa conter?',
-    fileHelpDescription: 'O ZIP do Instagram deve incluir <code>followers_*.json</code> e <code>following.json</code>.',
+    fileHelpDescription: '<p>Para gerar um arquivo completo e mais confiável:</p><ol><li>Na Central de Contas, escolha baixar suas informações e selecione sua conta.</li><li>Se quiser um arquivo menor, marque apenas <strong>Seguidores e seguindo</strong>.</li><li>Escolha <strong>JSON</strong> como formato de arquivo — é o formato recomendado.</li><li>Em intervalo de datas, selecione <strong>Desde o início</strong>. Períodos menores podem não conter todos os seguidores.</li></ol><p>Também aceitamos ZIPs em HTML, mas JSON é a melhor opção.</p>',
     exportButton: 'Exportar seus dados do Instagram',
     resultsEyebrow: 'RESULTADO',
     resultsTitle: 'Sua rede em números',
@@ -41,13 +41,15 @@ const translations = {
     copyButton: 'Copiar lista',
     copiedButton: 'Copiado!',
     readingExport: 'Lendo o seu export…',
-    missingFiles: 'Não encontrei followers_*.json e following.json dentro do ZIP.',
+    missingFiles: 'Não encontrei os arquivos de seguidores e seguindo em JSON ou HTML dentro do ZIP.',
     zipOnly: 'Selecione apenas um arquivo ZIP completo.',
     processingError: 'Não foi possível processar estes arquivos.',
     account: 'conta',
     accounts: 'contas',
     found: 'encontrada',
     foundPlural: 'encontradas',
+    jsonSource: 'Dados lidos do export em JSON',
+    htmlSource: 'Dados lidos do export em HTML',
     switchLanguage: 'English',
     switchLanguageLabel: 'Mudar para inglês'
   },
@@ -62,7 +64,7 @@ const translations = {
     dropzoneTitle: 'Drop your ZIP here',
     dropzoneDescription: 'or click to select them',
     fileHelpTitle: 'What does the ZIP need to include?',
-    fileHelpDescription: 'The Instagram ZIP must include <code>followers_*.json</code> and <code>following.json</code>.',
+    fileHelpDescription: '<p>For a complete, more reliable export:</p><ol><li>In Accounts Center, choose to download your information and select your account.</li><li>For a smaller file, select only <strong>Followers and following</strong>.</li><li>Choose <strong>JSON</strong> as the file format — it is recommended.</li><li>For the date range, select <strong>All time</strong>. Shorter periods may not include every follower.</li></ol><p>HTML ZIPs are also supported, but JSON is the best option.</p>',
     exportButton: 'Export your Instagram data',
     resultsEyebrow: 'RESULTS',
     resultsTitle: 'Your network at a glance',
@@ -78,13 +80,15 @@ const translations = {
     copyButton: 'Copy list',
     copiedButton: 'Copied!',
     readingExport: 'Reading your export…',
-    missingFiles: 'Could not find followers_*.json and following.json inside the ZIP.',
+    missingFiles: 'Could not find follower and following files in JSON or HTML inside the ZIP.',
     zipOnly: 'Select one complete ZIP file only.',
     processingError: 'Could not process these files.',
     account: 'account',
     accounts: 'accounts',
     found: 'found',
     foundPlural: 'found',
+    jsonSource: 'Data read from the JSON export',
+    htmlSource: 'Data read from the HTML export',
     switchLanguage: 'Português',
     switchLanguageLabel: 'Switch to Portuguese'
   }
@@ -119,28 +123,58 @@ function getUsername(entry) {
   return (data?.value || fromUrl || '').replace(/^@/, '').trim().toLowerCase();
 }
 
-function toUsers(data) {
+function usersFromJson(data) {
   const entries = Array.isArray(data)
     ? data
     : data.relationships_following || data.relationships_followers || [];
   return new Set(entries.map(getUsername).filter(Boolean));
 }
 
-function parseExport(entries) {
-  const followersFiles = entries.filter(({ name }) => /(^|\/)followers(?:_\d+)?\.json$/i.test(name));
-  const followingFile = entries.find(({ name }) => /(^|\/)following\.json$/i.test(name));
+function getHtmlUsername(href) {
+  const match = href.match(/instagram\.com\/(?:_u\/)?([^/?#]+)/i);
+  return (match?.[1] || '').replace(/^@/, '').trim().toLowerCase();
+}
 
-  if (!followersFiles.length || !followingFile) {
+function usersFromHtml(content) {
+  const linkedUsers = [...content.matchAll(/href=["']([^"']*instagram\.com[^"']*)["']/gi)]
+    .map(match => getHtmlUsername(match[1]))
+    .filter(Boolean);
+  if (linkedUsers.length) return new Set(linkedUsers);
+
+  const document = new DOMParser().parseFromString(content, 'text/html');
+  const headings = [...document.querySelectorAll('h2')]
+    .map(heading => heading.textContent.replace(/^@/, '').trim().toLowerCase())
+    .filter(username => /^[a-z0-9._]{1,30}$/i.test(username));
+  return new Set(headings);
+}
+
+function getExportFiles(entries, format) {
+  const connectionsEntries = entries.filter(({ name }) => /(^|\/)connections\/followers_and_following\//i.test(name));
+  const targetEntries = connectionsEntries.length ? connectionsEntries : entries;
+  const followersFiles = targetEntries.filter(({ name }) => new RegExp('(^|/)followers(?:_\\d+)?\\.' + format + '$', 'i').test(name));
+  const followingFile = targetEntries.find(({ name }) => new RegExp('(^|/)following\\.' + format + '$', 'i').test(name));
+  return { followersFiles, followingFile };
+}
+
+function parseExport(entries) {
+  const jsonFiles = getExportFiles(entries, 'json');
+  const htmlFiles = getExportFiles(entries, 'html');
+  const exportFiles = jsonFiles.followersFiles.length && jsonFiles.followingFile ? jsonFiles : htmlFiles;
+  const format = jsonFiles.followersFiles.length && jsonFiles.followingFile ? 'json' : 'html';
+
+  if (!exportFiles.followersFiles.length || !exportFiles.followingFile) {
     throw new Error(translate('missingFiles'));
   }
 
   const followers = new Set();
-  for (const file of followersFiles) {
-    for (const user of toUsers(file.data)) followers.add(user);
+  const getUsers = format === 'json' ? usersFromJson : usersFromHtml;
+  for (const file of exportFiles.followersFiles) {
+    for (const user of getUsers(file.content)) followers.add(user);
   }
-  const following = toUsers(followingFile.data);
+  const following = getUsers(exportFiles.followingFile.content);
 
   return {
+    format,
     followers: followers.size,
     following: following.size,
     notFollowing: [...following].filter(user => !followers.has(user)).sort(),
@@ -156,8 +190,8 @@ async function readSelection(fileList) {
   const entries = [];
   const zip = await JSZip.loadAsync(fileList[0]);
   for (const [name, zipFile] of Object.entries(zip.files)) {
-    if (!zipFile.dir && name.toLowerCase().endsWith('.json')) {
-      entries.push({ name, data: JSON.parse(await zipFile.async('text')) });
+    if (!zipFile.dir && /\.(json|html)$/i.test(name)) {
+      entries.push({ name, content: await zipFile.async('text') });
     }
   }
   return entries;
@@ -206,6 +240,7 @@ function showResults() {
   document.querySelector('#not-following-total').textContent = analysis.notFollowing.length.toLocaleString(locale);
   document.querySelector('#not-following-badge').textContent = analysis.notFollowing.length;
   document.querySelector('#you-dont-follow-badge').textContent = analysis.youDontFollow.length;
+  document.querySelector('#data-format').textContent = translate(analysis.format + 'Source');
   uploadScreen.hidden = true;
   resultsScreen.hidden = false;
   renderList();

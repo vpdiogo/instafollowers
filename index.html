@@ -35,7 +35,7 @@
 
           <details>
             <summary data-i18n="fileHelpTitle">O que o ZIP precisa conter?</summary>
-            <p data-i18n-html="fileHelpDescription">O ZIP do Instagram deve incluir <code>followers_*.json</code> e <code>following.json</code>.</p>
+            <div class="export-help" data-i18n-html="fileHelpDescription">O ZIP do Instagram deve incluir os arquivos de seguidores e seguindo em formato JSON ou HTML.</div>
           </details>
 
           <a class="export-button" href="https://accountscenter.instagram.com/info_and_permissions/dyi/" target="_blank" rel="noreferrer">
@@ -48,6 +48,7 @@
             <div>
               <p class="eyebrow" data-i18n="resultsEyebrow">RESULTADO</p>
               <h2 data-i18n="resultsTitle">Sua rede em números</h2>
+              <p class="data-format" id="data-format" aria-live="polite"></p>
             </div>
             <button class="link-button" id="restart" type="button" data-i18n="restartButton">Analisar outro arquivo</button>
           </header>

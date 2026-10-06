@@ -10,57 +10,58 @@
   <body>
     <main class="page">
       <section class="hero">
-        <p class="eyebrow">ANÁLISE 100% LOCAL</p>
-        <h1>Quem te segue<br />de volta?</h1>
-        <p>Importe o arquivo baixado do Instagram e compare suas listas sem enviar seus dados para ninguém.</p>
+        <p class="eyebrow" data-i18n="heroEyebrow">ANÁLISE 100% LOCAL</p>
+        <h1 data-i18n-html="heroTitle">Quem te segue<br />de volta?</h1>
+        <p data-i18n="heroDescription">Importe o arquivo baixado do Instagram e compare suas listas sem enviar seus dados para ninguém.</p>
+        <button class="language-toggle" id="language-toggle" type="button">English</button>
       </section>
 
       <section class="card" aria-labelledby="upload-title">
         <div id="upload-screen">
-          <h2 id="upload-title">Importe o seu export</h2>
-          <p class="hint">Envie o ZIP gerado pela Central de Contas, ou os arquivos JSON <code>followers_*.json</code> e <code>following.json</code>.</p>
+          <h2 id="upload-title" data-i18n="uploadTitle">Importe o seu export</h2>
+          <p class="hint" data-i18n-html="uploadHint">Envie o ZIP gerado pela Central de Contas, ou os arquivos JSON <code>followers_*.json</code> e <code>following.json</code>.</p>
 
           <label class="dropzone" id="dropzone" for="files">
             <input id="files" type="file" accept=".zip,.json,application/json" multiple />
             <span class="upload-mark" aria-hidden="true">↑</span>
-            <strong>Arraste seus arquivos aqui</strong>
-            <span>ou clique para selecionar</span>
+            <strong data-i18n="dropzoneTitle">Arraste seus arquivos aqui</strong>
+            <span data-i18n="dropzoneDescription">ou clique para selecionar</span>
           </label>
           <p id="message" class="message" role="status"></p>
 
           <details>
-            <summary>Onde encontro esses arquivos?</summary>
-            <p>No download em JSON do Instagram, eles costumam ficar em <code>connections/followers_and_following</code>.</p>
+            <summary data-i18n="fileHelpTitle">Onde encontro esses arquivos?</summary>
+            <p data-i18n-html="fileHelpDescription">No download em JSON do Instagram, eles costumam ficar em <code>connections/followers_and_following</code>.</p>
           </details>
 
           <a class="export-button" href="https://accountscenter.instagram.com/info_and_permissions/dyi/" target="_blank" rel="noreferrer">
-            Gerar export no Instagram <span aria-hidden="true">↗</span>
+            <span data-i18n="exportButton">Gerar export no Instagram</span> <span aria-hidden="true">↗</span>
           </a>
         </div>
 
         <div id="results-screen" hidden>
           <header class="results-header">
             <div>
-              <p class="eyebrow">RESULTADO</p>
-              <h2>Sua rede em números</h2>
+              <p class="eyebrow" data-i18n="resultsEyebrow">RESULTADO</p>
+              <h2 data-i18n="resultsTitle">Sua rede em números</h2>
             </div>
-            <button class="link-button" id="restart" type="button">Analisar outro arquivo</button>
+            <button class="link-button" id="restart" type="button" data-i18n="restartButton">Analisar outro arquivo</button>
           </header>
 
-          <div class="stats" aria-label="Resumo da análise">
-            <article><strong id="following-total">0</strong><span>você segue</span></article>
-            <article><strong id="followers-total">0</strong><span>te seguem</span></article>
-            <article class="highlight"><strong id="not-following-total">0</strong><span>não seguem de volta</span></article>
+          <div class="stats" aria-label="Resumo da análise" data-i18n-aria-label="analysisSummary">
+            <article><strong id="following-total">0</strong><span data-i18n="followingLabel">você segue</span></article>
+            <article><strong id="followers-total">0</strong><span data-i18n="followersLabel">te seguem</span></article>
+            <article class="highlight"><strong id="not-following-total">0</strong><span data-i18n="notFollowingLabel">não seguem de volta</span></article>
           </div>
 
-          <div class="tabs" role="tablist" aria-label="Listas de contas">
-            <button class="tab active" type="button" data-list="not-following" role="tab" aria-selected="true">Não te seguem <span id="not-following-badge">0</span></button>
-            <button class="tab" type="button" data-list="you-dont-follow" role="tab" aria-selected="false">Você não segue <span id="you-dont-follow-badge">0</span></button>
+          <div class="tabs" role="tablist" aria-label="Listas de contas" data-i18n-aria-label="accountLists">
+            <button class="tab active" type="button" data-list="not-following" role="tab" aria-selected="true"><span data-i18n="notFollowingTab">Não te seguem</span> <span id="not-following-badge">0</span></button>
+            <button class="tab" type="button" data-list="you-dont-follow" role="tab" aria-selected="false"><span data-i18n="youDontFollowTab">Você não segue</span> <span id="you-dont-follow-badge">0</span></button>
           </div>
 
           <div class="tools">
-            <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Buscar usuário" autocomplete="off" /></label>
-            <button class="copy-button" id="copy" type="button">Copiar lista</button>
+            <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Buscar usuário" autocomplete="off" data-i18n-placeholder="searchPlaceholder" /></label>
+            <button class="copy-button" id="copy" type="button" data-i18n="copyButton">Copiar lista</button>
           </div>
           <p id="list-summary" class="list-summary"></p>
           <ul id="accounts" class="accounts" aria-live="polite"></ul>

@@ -1,29 +1,29 @@
 # Insta Followers
 
-Uma ferramenta estática para comparar seguidores e contas seguidas a partir do export oficial do Instagram.
+A static tool that compares followers and following lists from an official Instagram export.
 
-## Privacidade
+## Privacy
 
-O ZIP/JSON é lido no navegador. Nenhum arquivo, nome de usuário ou credencial é enviado a um servidor. O site não pede login do Instagram e não é afiliado à Meta ou ao Instagram.
+The ZIP or JSON files are processed in the browser. No files, usernames, or credentials are sent to a server. The app does not ask for an Instagram login and is not affiliated with Meta or Instagram.
 
-## Como usar
+## Usage
 
-1. Na Central de Contas do Instagram, solicite o download em formato **JSON**.
-2. Abra o site e envie o ZIP completo ou os arquivos `followers_*.json` e `following.json`.
-3. Veja quem não segue você de volta ou quem você não segue.
+1. Request an Instagram data export in **JSON** format through Accounts Center.
+2. Open the site and upload the complete ZIP or the `followers_*.json` and `following.json` files.
+3. Review accounts that do not follow you back and accounts you do not follow.
 
-## Publicação
+## Deployment
 
-O projeto não exige Node.js, banco de dados ou backend. Publique o conteúdo deste repositório como site estático em GitHub Pages, Cloudflare Pages ou Vercel.
+The project has no Node.js, database, or backend requirement. Publish the repository as a static site through GitHub Pages, Cloudflare Pages, or Vercel.
 
-O arquivo inicial é `index.html`. Para testar localmente, abra-o em um navegador ou sirva esta pasta com qualquer servidor estático.
+The entry point is `index.html`. To test it locally, open it in a browser or serve the directory with any static server.
 
-## Recursos
+## Features
 
-- Importação do ZIP oficial ou dos JSONs individuais.
-- Contas que não seguem você de volta.
-- Contas que você não segue.
-- Busca, links para perfis e cópia da lista exibida.
+- Official ZIP and individual JSON import.
+- Accounts that do not follow you back.
+- Accounts you do not follow.
+- Username search, profile links, and copying the visible list.
 
 Na Central de Contas do Instagram, solicite o download das informações em formato **JSON**. No app, envie o ZIP completo ou os arquivos `followers_*.json` e `following.json`.
 

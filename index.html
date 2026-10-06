@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Compare localmente os seguidores e seguidos do seu export do Instagram." />
+    <title>Insta Followers</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero">
+        <p class="eyebrow">ANÁLISE 100% LOCAL</p>
+        <h1>Quem te segue<br />de volta?</h1>
+        <p>Importe o arquivo baixado do Instagram e compare suas listas sem enviar seus dados para ninguém.</p>
+      </section>
+
+      <section class="card" aria-labelledby="upload-title">
+        <div id="upload-screen">
+          <h2 id="upload-title">Importe o seu export</h2>
+          <p class="hint">Envie o ZIP gerado pela Central de Contas, ou os arquivos JSON <code>followers_*.json</code> e <code>following.json</code>.</p>
+
+          <label class="dropzone" id="dropzone" for="files">
+            <input id="files" type="file" accept=".zip,.json,application/json" multiple />
+            <span class="upload-mark" aria-hidden="true">↑</span>
+            <strong>Arraste seus arquivos aqui</strong>
+            <span>ou clique para selecionar</span>
+          </label>
+          <p id="message" class="message" role="status"></p>
+
+          <details>
+            <summary>Onde encontro esses arquivos?</summary>
+            <p>No download em JSON do Instagram, eles costumam ficar em <code>connections/followers_and_following</code>.</p>
+          </details>
+
+          <a class="export-button" href="https://accountscenter.instagram.com/info_and_permissions/dyi/" target="_blank" rel="noreferrer">
+            Gerar export no Instagram <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+
+        <div id="results-screen" hidden>
+          <header class="results-header">
+            <div>
+              <p class="eyebrow">RESULTADO</p>
+              <h2>Sua rede em números</h2>
+            </div>
+            <button class="link-button" id="restart" type="button">Analisar outro arquivo</button>
+          </header>
+
+          <div class="stats" aria-label="Resumo da análise">
+            <article><strong id="following-total">0</strong><span>você segue</span></article>
+            <article><strong id="followers-total">0</strong><span>te seguem</span></article>
+            <article class="highlight"><strong id="not-following-total">0</strong><span>não seguem de volta</span></article>
+          </div>
+
+          <div class="tabs" role="tablist" aria-label="Listas de contas">
+            <button class="tab active" type="button" data-list="not-following" role="tab" aria-selected="true">Não te seguem <span id="not-following-badge">0</span></button>
+            <button class="tab" type="button" data-list="you-dont-follow" role="tab" aria-selected="false">Você não segue <span id="you-dont-follow-badge">0</span></button>
+          </div>
+
+          <div class="tools">
+            <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Buscar usuário" autocomplete="off" /></label>
+            <button class="copy-button" id="copy" type="button">Copiar lista</button>
+          </div>
+          <p id="list-summary" class="list-summary"></p>
+          <ul id="accounts" class="accounts" aria-live="polite"></ul>
+        </div>
+      </section>
+    </main>
+    <script src="/jszip.min.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

@@ -9,7 +9,7 @@ The ZIP or JSON files are processed in the browser. No files, usernames, or cred
 ## Usage
 
 1. Request an Instagram data export in **JSON** format through Accounts Center.
-2. Open the site and upload the complete ZIP or the `followers_*.json` and `following.json` files.
+2. Open the site and upload the complete ZIP file.
 3. Review accounts that do not follow you back and accounts you do not follow.
 
 ## Deployment
@@ -20,7 +20,7 @@ The entry point is `index.html`. To test it locally, open it in a browser or ser
 
 ## Features
 
-- Official ZIP and individual JSON import.
+- Official Instagram ZIP import.
 - Accounts that do not follow you back.
 - Accounts you do not follow.
 - Username search, profile links, and copying the visible list.

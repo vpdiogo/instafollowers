@@ -6,6 +6,8 @@ const resultsScreen = document.querySelector('#results-screen');
 const accounts = document.querySelector('#accounts');
 const search = document.querySelector('#search');
 const languageToggle = document.querySelector('#language-toggle');
+const privacyInfo = document.querySelector('#privacy-info');
+const privacyNote = document.querySelector('#privacy-note');
 
 let analysis = { following: 0, followers: 0, notFollowing: [], youDontFollow: [] };
 let selectedList = 'not-following';
@@ -16,13 +18,15 @@ const translations = {
     heroEyebrow: 'ANÁLISE 100% LOCAL',
     heroTitle: 'Quem te segue<br />de volta?',
     heroDescription: 'Importe o arquivo baixado do Instagram e compare suas listas sem enviar seus dados para ninguém.',
-    uploadTitle: 'Importe o seu export',
-    uploadHint: 'Envie o ZIP gerado pela Central de Contas, ou os arquivos JSON <code>followers_*.json</code> e <code>following.json</code>.',
-    dropzoneTitle: 'Arraste seus arquivos aqui',
+    privacyInfoLabel: 'Saiba como seus dados são processados',
+    privacyNote: 'Seus arquivos são processados diretamente neste navegador. O ZIP, sua lista de seguidores e suas credenciais não são enviados nem armazenados em servidores.',
+    uploadTitle: 'Importe seus dados',
+    uploadHint: 'Envie o ZIP completo gerado pela Central de Contas.',
+    dropzoneTitle: 'Arraste seu ZIP aqui',
     dropzoneDescription: 'ou clique para selecionar',
-    fileHelpTitle: 'Onde encontro esses arquivos?',
-    fileHelpDescription: 'No download em JSON do Instagram, eles costumam ficar em <code>connections/followers_and_following</code>.',
-    exportButton: 'Gerar export no Instagram',
+    fileHelpTitle: 'O que o ZIP precisa conter?',
+    fileHelpDescription: 'O ZIP do Instagram deve incluir <code>followers_*.json</code> e <code>following.json</code>.',
+    exportButton: 'Exportar seus dados do Instagram',
     resultsEyebrow: 'RESULTADO',
     resultsTitle: 'Sua rede em números',
     restartButton: 'Analisar outro arquivo',
@@ -37,7 +41,8 @@ const translations = {
     copyButton: 'Copiar lista',
     copiedButton: 'Copiado!',
     readingExport: 'Lendo o seu export…',
-    missingFiles: 'Não encontrei followers_*.json e following.json. Confira se você selecionou o ZIP completo ou os dois JSONs.',
+    missingFiles: 'Não encontrei followers_*.json e following.json dentro do ZIP.',
+    zipOnly: 'Selecione apenas um arquivo ZIP completo.',
     processingError: 'Não foi possível processar estes arquivos.',
     account: 'conta',
     accounts: 'contas',
@@ -50,13 +55,15 @@ const translations = {
     heroEyebrow: '100% LOCAL ANALYSIS',
     heroTitle: 'Who follows you<br />back?',
     heroDescription: 'Import your Instagram download and compare your lists without sending your data anywhere.',
-    uploadTitle: 'Import your export',
-    uploadHint: 'Upload the ZIP generated in Accounts Center, or the <code>followers_*.json</code> and <code>following.json</code> files.',
-    dropzoneTitle: 'Drop your files here',
+    privacyInfoLabel: 'Learn how your data is processed',
+    privacyNote: 'Your files are processed directly in this browser. Your ZIP, follower list, and credentials are not uploaded to or stored on servers.',
+    uploadTitle: 'Import your data',
+    uploadHint: 'Upload the complete ZIP generated in Accounts Center.',
+    dropzoneTitle: 'Drop your ZIP here',
     dropzoneDescription: 'or click to select them',
-    fileHelpTitle: 'Where can I find these files?',
-    fileHelpDescription: 'In Instagram JSON downloads, they are usually under <code>connections/followers_and_following</code>.',
-    exportButton: 'Create an Instagram export',
+    fileHelpTitle: 'What does the ZIP need to include?',
+    fileHelpDescription: 'The Instagram ZIP must include <code>followers_*.json</code> and <code>following.json</code>.',
+    exportButton: 'Export your Instagram data',
     resultsEyebrow: 'RESULTS',
     resultsTitle: 'Your network at a glance',
     restartButton: 'Analyze another file',
@@ -71,7 +78,8 @@ const translations = {
     copyButton: 'Copy list',
     copiedButton: 'Copied!',
     readingExport: 'Reading your export…',
-    missingFiles: 'Could not find followers_*.json and following.json. Select the complete ZIP or both JSON files.',
+    missingFiles: 'Could not find followers_*.json and following.json inside the ZIP.',
+    zipOnly: 'Select one complete ZIP file only.',
     processingError: 'Could not process these files.',
     account: 'account',
     accounts: 'accounts',
@@ -141,17 +149,15 @@ function parseExport(entries) {
 }
 
 async function readSelection(fileList) {
+  if (fileList.length !== 1 || !fileList[0].name.toLowerCase().endsWith('.zip')) {
+    throw new Error(translate('zipOnly'));
+  }
+
   const entries = [];
-  for (const file of fileList) {
-    if (file.name.toLowerCase().endsWith('.zip')) {
-      const zip = await JSZip.loadAsync(file);
-      for (const [name, zipFile] of Object.entries(zip.files)) {
-        if (!zipFile.dir && name.toLowerCase().endsWith('.json')) {
-          entries.push({ name, data: JSON.parse(await zipFile.async('text')) });
-        }
-      }
-    } else if (file.name.toLowerCase().endsWith('.json')) {
-      entries.push({ name: file.name, data: JSON.parse(await file.text()) });
+  const zip = await JSZip.loadAsync(fileList[0]);
+  for (const [name, zipFile] of Object.entries(zip.files)) {
+    if (!zipFile.dir && name.toLowerCase().endsWith('.json')) {
+      entries.push({ name, data: JSON.parse(await zipFile.async('text')) });
     }
   }
   return entries;
@@ -248,6 +254,12 @@ document.querySelector('#copy').addEventListener('click', async () => {
 languageToggle.addEventListener('click', () => {
   language = language === 'pt' ? 'en' : 'pt';
   applyTranslations();
+});
+
+privacyInfo.addEventListener('click', () => {
+  const expanded = privacyInfo.getAttribute('aria-expanded') === 'true';
+  privacyInfo.setAttribute('aria-expanded', String(!expanded));
+  privacyNote.hidden = expanded;
 });
 
 document.querySelector('#restart').addEventListener('click', () => {

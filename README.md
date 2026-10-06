@@ -1,27 +1,29 @@
 # Insta Followers
 
-Aplicação local para comparar as listas do export do Instagram. Os dados são lidos no navegador e não são enviados a nenhum servidor.
+Uma ferramenta estática para comparar seguidores e contas seguidas a partir do export oficial do Instagram.
+
+## Privacidade
+
+O ZIP/JSON é lido no navegador. Nenhum arquivo, nome de usuário ou credencial é enviado a um servidor. O site não pede login do Instagram e não é afiliado à Meta ou ao Instagram.
 
 ## Como usar
 
-```bash
-npm install
-npm start
-```
+1. Na Central de Contas do Instagram, solicite o download em formato **JSON**.
+2. Abra o site e envie o ZIP completo ou os arquivos `followers_*.json` e `following.json`.
+3. Veja quem não segue você de volta ou quem você não segue.
 
-Abra [http://localhost:3000](http://localhost:3000).
+## Publicação
 
-### Abrir em outro dispositivo da mesma rede Wi-Fi
+O projeto não exige Node.js, banco de dados ou backend. Publique o conteúdo deste repositório como site estático em GitHub Pages, Cloudflare Pages ou Vercel.
 
-O servidor já aceita conexões da rede local. Com ele rodando, descubra o IP local deste computador:
+O arquivo inicial é `index.html`. Para testar localmente, abra-o em um navegador ou sirva esta pasta com qualquer servidor estático.
 
-```bash
-hostname -I
-```
+## Recursos
 
-No celular ou outro computador conectado ao **mesmo Wi-Fi**, abra `http://SEU-IP-LOCAL:3000` — por exemplo, `http://192.168.1.42:3000`.
-
-Se o Ubuntu perguntar sobre o firewall, permita conexões na porta 3000 somente para sua rede privada. Não exponha essa porta na internet/roteador. Cada navegador processa o seu próprio arquivo do Instagram; o ZIP não é enviado para o computador que está rodando o servidor.
+- Importação do ZIP oficial ou dos JSONs individuais.
+- Contas que não seguem você de volta.
+- Contas que você não segue.
+- Busca, links para perfis e cópia da lista exibida.
 
 Na Central de Contas do Instagram, solicite o download das informações em formato **JSON**. No app, envie o ZIP completo ou os arquivos `followers_*.json` e `following.json`.
 

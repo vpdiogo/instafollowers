@@ -123,7 +123,8 @@ function getUsername(entry) {
   return (data?.value || fromUrl || '').replace(/^@/, '').trim().toLowerCase();
 }
 
-function usersFromJson(data) {
+function usersFromJson(content) {
+  const data = typeof content === 'string' ? JSON.parse(content) : content;
   const entries = Array.isArray(data)
     ? data
     : data.relationships_following || data.relationships_followers || [];

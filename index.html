@@ -16,7 +16,7 @@
           <p data-i18n="heroDescription">Importe o arquivo baixado do Instagram e compare suas listas sem enviar seus dados para ninguém.</p>
           <button class="info-button" id="privacy-info" type="button" aria-controls="privacy-note" aria-expanded="false" data-i18n-aria-label="privacyInfoLabel">i</button>
         </div>
-        <p class="privacy-note" id="privacy-note" role="status" hidden data-i18n="privacyNote">Seus arquivos são processados diretamente neste navegador. O ZIP, sua lista de seguidores e suas credenciais não são enviados nem armazenados em servidores.</p>
+        <p class="privacy-note" id="privacy-note" role="status" hidden data-i18n="privacyNote">Seus arquivos são processados diretamente neste navegador. O ZIP, sua lista de seguidores e suas credenciais não são enviados nem armazenados em servidores. Apenas os nomes das contas que você marcar para ignorar ficam salvos neste navegador para as próximas análises. Limpar os dados do site apaga essas preferências.</p>
         <button class="language-toggle" id="language-toggle" type="button">English</button>
       </section>
 
@@ -66,10 +66,20 @@
 
           <div class="tools">
             <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Buscar usuário" autocomplete="off" data-i18n-placeholder="searchPlaceholder" /></label>
+            <label class="ignore-filter" id="ignore-filter-control">
+              <span data-i18n="ignoreFilterLabel">Exibir</span>
+              <select id="ignore-filter">
+                <option value="not-ignored" data-i18n="notIgnoredOption">Não ignoradas</option>
+                <option value="ignored" data-i18n="ignoredOption">Ignoradas</option>
+                <option value="all" data-i18n="allOption">Todas</option>
+              </select>
+            </label>
             <button class="copy-button" id="copy" type="button" data-i18n="copyButton">Copiar lista</button>
           </div>
-          <p id="list-summary" class="list-summary"></p>
+          <p id="storage-warning" class="storage-warning" role="status" hidden></p>
+          <p id="list-summary" class="list-summary" role="status"></p>
           <ul id="accounts" class="accounts" aria-live="polite"></ul>
+          <p id="empty-list" class="empty-list" hidden data-i18n="emptyList">Nenhuma conta corresponde à busca ou ao filtro selecionado.</p>
         </div>
       </section>
     </main>

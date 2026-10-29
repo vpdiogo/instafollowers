@@ -8,10 +8,63 @@ const search = document.querySelector('#search');
 const languageToggle = document.querySelector('#language-toggle');
 const privacyInfo = document.querySelector('#privacy-info');
 const privacyNote = document.querySelector('#privacy-note');
+const ignoreFilter = document.querySelector('#ignore-filter');
+const ignoreFilterControl = document.querySelector('#ignore-filter-control');
+const storageWarning = document.querySelector('#storage-warning');
+const ignoredAccountsKey = 'instafollowers.ignoredAccounts.v1';
 
 let analysis = { following: 0, followers: 0, notFollowing: [], youDontFollow: [] };
 let selectedList = 'not-following';
 let language = 'pt';
+let storageUnavailable = false;
+let ignoredAccounts = loadIgnoredAccounts() ?? new Set();
+const pendingIgnoredChanges = new Map();
+
+function loadIgnoredAccounts() {
+  let stored;
+  try {
+    stored = localStorage.getItem(ignoredAccountsKey);
+  } catch {
+    storageUnavailable = true;
+    return null;
+  }
+
+  try {
+    const users = JSON.parse(stored ?? '[]');
+    if (!Array.isArray(users) || !users.every(user => typeof user === 'string')) return new Set();
+    const normalized = users.map(user => user.trim().replace(/^@/, '').toLowerCase());
+    if (!normalized.every(user => /^[a-z0-9._]{1,30}$/.test(user))) return new Set();
+    return new Set(normalized);
+  } catch {
+    return new Set();
+  }
+}
+
+function syncIgnoredAccounts() {
+  const stored = loadIgnoredAccounts();
+  if (stored !== null) {
+    ignoredAccounts = stored;
+    if (!pendingIgnoredChanges.size) storageUnavailable = false;
+  }
+  // Keep session-only choices when browser storage rejects a write.
+  for (const [user, ignored] of pendingIgnoredChanges) {
+    if (ignored) ignoredAccounts.add(user);
+    else ignoredAccounts.delete(user);
+  }
+}
+
+function saveIgnoredAccounts() {
+  // Read inside the lock so another tab's changes cannot be overwritten.
+  syncIgnoredAccounts();
+  try {
+    localStorage.setItem(ignoredAccountsKey, JSON.stringify([...ignoredAccounts]));
+    pendingIgnoredChanges.clear();
+    storageUnavailable = false;
+  } catch {
+    storageUnavailable = true;
+  }
+  renderList();
+}
 
 const translations = {
   pt: {
@@ -19,7 +72,7 @@ const translations = {
     heroTitle: 'Quem te segue<br />de volta?',
     heroDescription: 'Importe o arquivo baixado do Instagram e compare suas listas sem enviar seus dados para ninguém.',
     privacyInfoLabel: 'Saiba como seus dados são processados',
-    privacyNote: 'Seus arquivos são processados diretamente neste navegador. O ZIP, sua lista de seguidores e suas credenciais não são enviados nem armazenados em servidores.',
+    privacyNote: 'Seus arquivos são processados diretamente neste navegador. O ZIP, sua lista de seguidores e suas credenciais não são enviados nem armazenados em servidores. Apenas os nomes das contas que você marcar para ignorar ficam salvos neste navegador para as próximas análises. Limpar os dados do site apaga essas preferências.',
     uploadTitle: 'Importe seus dados',
     uploadHint: 'Envie o ZIP completo gerado pela Central de Contas.',
     dropzoneTitle: 'Arraste seu ZIP aqui',
@@ -40,6 +93,17 @@ const translations = {
     searchPlaceholder: 'Buscar usuário',
     copyButton: 'Copiar lista',
     copiedButton: 'Copiado!',
+    ignoreFilterLabel: 'Exibir',
+    notIgnoredOption: 'Não ignoradas',
+    ignoredOption: 'Ignoradas',
+    allOption: 'Todas',
+    ignoreAccount: 'Ignorar',
+    shown: 'exibida',
+    shownPlural: 'exibidas',
+    ignored: 'ignorada',
+    ignoredPlural: 'ignoradas',
+    emptyList: 'Nenhuma conta corresponde à busca ou ao filtro selecionado.',
+    storageWarning: 'Não foi possível salvar suas preferências neste navegador. As marcações feitas nesta sessão podem ser perdidas ao sair.',
     readingExport: 'Lendo o seu export…',
     missingFiles: 'Não encontrei os arquivos de seguidores e seguindo em JSON ou HTML dentro do ZIP.',
     zipOnly: 'Selecione apenas um arquivo ZIP completo.',
@@ -58,7 +122,7 @@ const translations = {
     heroTitle: 'Who follows you<br />back?',
     heroDescription: 'Import your Instagram download and compare your lists without sending your data anywhere.',
     privacyInfoLabel: 'Learn how your data is processed',
-    privacyNote: 'Your files are processed directly in this browser. Your ZIP, follower list, and credentials are not uploaded to or stored on servers.',
+    privacyNote: 'Your files are processed directly in this browser. Your ZIP, follower list, and credentials are not uploaded to or stored on servers. Only the usernames you choose to ignore are saved in this browser for future analyses. Clearing site data removes these preferences.',
     uploadTitle: 'Import your data',
     uploadHint: 'Upload the complete ZIP generated in Accounts Center.',
     dropzoneTitle: 'Drop your ZIP here',
@@ -79,6 +143,17 @@ const translations = {
     searchPlaceholder: 'Search username',
     copyButton: 'Copy list',
     copiedButton: 'Copied!',
+    ignoreFilterLabel: 'Show',
+    notIgnoredOption: 'Not ignored',
+    ignoredOption: 'Ignored',
+    allOption: 'All',
+    ignoreAccount: 'Ignore',
+    shown: 'shown',
+    shownPlural: 'shown',
+    ignored: 'ignored',
+    ignoredPlural: 'ignored',
+    emptyList: 'No accounts match your search or the selected filter.',
+    storageWarning: 'Your preferences could not be saved in this browser. Changes made during this session may be lost when you leave.',
     readingExport: 'Reading your export…',
     missingFiles: 'Could not find follower and following files in JSON or HTML inside the ZIP.',
     zipOnly: 'Select one complete ZIP file only.',
@@ -114,7 +189,8 @@ function applyTranslations() {
   });
   languageToggle.textContent = translate('switchLanguage');
   languageToggle.setAttribute('aria-label', translate('switchLanguageLabel'));
-  renderList();
+  if (!resultsScreen.hidden) showResults();
+  else renderList();
 }
 
 function getUsername(entry) {
@@ -202,6 +278,8 @@ async function handleFiles(fileList) {
   try {
     message.textContent = translate('readingExport');
     analysis = parseExport(await readSelection(fileList));
+    ignoreFilter.value = 'not-ignored';
+    selectList('not-following');
     showResults();
   } catch (error) {
     message.textContent = error instanceof Error ? error.message : translate('processingError');
@@ -211,11 +289,23 @@ async function handleFiles(fileList) {
 function currentUsers() {
   const key = selectedList === 'not-following' ? 'notFollowing' : 'youDontFollow';
   const term = search.value.trim().toLowerCase();
-  return analysis[key].filter(user => user.includes(term));
+  return analysis[key].filter(user => {
+    if (!user.includes(term)) return false;
+    if (selectedList !== 'not-following' || ignoreFilter.value === 'all') return true;
+    return ignoredAccounts.has(user) === (ignoreFilter.value === 'ignored');
+  });
 }
 
 function renderList() {
+  const focusedCheckbox = accounts.contains(document.activeElement)
+    && document.activeElement.matches('input[data-user]') ? document.activeElement : null;
+  const focusIndex = focusedCheckbox
+    ? [...accounts.querySelectorAll('input[data-user]')].indexOf(focusedCheckbox) : -1;
+  const isNotFollowing = selectedList === 'not-following';
   const users = currentUsers();
+  ignoreFilterControl.hidden = !isNotFollowing;
+  storageWarning.hidden = !storageUnavailable;
+  storageWarning.textContent = storageUnavailable ? translate('storageWarning') : '';
   accounts.replaceChildren(...users.map(user => {
     const item = document.createElement('li');
     const initial = document.createElement('span');
@@ -227,11 +317,48 @@ function renderList() {
     link.rel = 'noreferrer';
     link.textContent = `@${user}`;
     item.append(initial, link);
+    if (isNotFollowing) {
+      const label = document.createElement('label');
+      label.className = 'ignore-account';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.dataset.user = user;
+      checkbox.checked = ignoredAccounts.has(user);
+      checkbox.setAttribute('aria-label', `${translate('ignoreAccount')} @${user}`);
+      const caption = document.createElement('span');
+      caption.textContent = translate('ignoreAccount');
+      label.append(checkbox, caption);
+      item.append(label);
+      item.classList.toggle('is-ignored', checkbox.checked);
+    }
     return item;
   }));
-  const accountLabel = translate(users.length === 1 ? 'account' : 'accounts');
-  const suffix = search.value ? ' ' + translate(users.length === 1 ? 'found' : 'foundPlural') : '';
-  document.querySelector('#list-summary').textContent = users.length + ' ' + accountLabel + suffix;
+  if (isNotFollowing) {
+    const ignoredCount = analysis.notFollowing.filter(user => ignoredAccounts.has(user)).length;
+    document.querySelector('#list-summary').textContent = `${users.length} ${translate(users.length === 1 ? 'shown' : 'shownPlural')} · ${ignoredCount} ${translate(ignoredCount === 1 ? 'ignored' : 'ignoredPlural')}`;
+  } else {
+    const accountLabel = translate(users.length === 1 ? 'account' : 'accounts');
+    const suffix = search.value ? ' ' + translate(users.length === 1 ? 'found' : 'foundPlural') : '';
+    document.querySelector('#list-summary').textContent = users.length + ' ' + accountLabel + suffix;
+  }
+  document.querySelector('#empty-list').hidden = users.length > 0;
+
+  if (focusedCheckbox) {
+    const checkboxes = [...accounts.querySelectorAll('input[data-user]')];
+    const nextFocus = checkboxes.find(checkbox => checkbox.dataset.user === focusedCheckbox.dataset.user)
+      || checkboxes[Math.min(focusIndex, checkboxes.length - 1)] || ignoreFilter;
+    nextFocus.focus();
+  }
+}
+
+function selectList(list) {
+  selectedList = list;
+  search.value = '';
+  document.querySelectorAll('.tab').forEach(button => {
+    const active = button.dataset.list === list;
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-selected', String(active));
+  });
 }
 
 function showResults() {
@@ -268,17 +395,33 @@ dropzone.addEventListener('drop', event => {
 });
 
 document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
-  selectedList = tab.dataset.list;
-  search.value = '';
-  document.querySelectorAll('.tab').forEach(button => {
-    const active = button === tab;
-    button.classList.toggle('active', active);
-    button.setAttribute('aria-selected', String(active));
-  });
+  selectList(tab.dataset.list);
   renderList();
 }));
 
 search.addEventListener('input', renderList);
+ignoreFilter.addEventListener('change', renderList);
+
+accounts.addEventListener('change', event => {
+  const checkbox = event.target;
+  if (!checkbox.matches('input[data-user]')) return;
+  pendingIgnoredChanges.set(checkbox.dataset.user, checkbox.checked);
+  if (checkbox.checked) ignoredAccounts.add(checkbox.dataset.user);
+  else ignoredAccounts.delete(checkbox.dataset.user);
+  renderList();
+  if (navigator.locks?.request) {
+    navigator.locks.request(ignoredAccountsKey, saveIgnoredAccounts).catch(saveIgnoredAccounts);
+  } else {
+    saveIgnoredAccounts();
+  }
+});
+
+window.addEventListener('storage', event => {
+  if (event.key !== ignoredAccountsKey && event.key !== null) return;
+  if (event.storageArea !== localStorage) return;
+  syncIgnoredAccounts();
+  renderList();
+});
 
 document.querySelector('#copy').addEventListener('click', async () => {
   const button = document.querySelector('#copy');

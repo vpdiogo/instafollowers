@@ -4,6 +4,10 @@
 * { box-sizing:border-box; }
 body { margin:0; min-height:100vh; color:var(--ink); background:radial-gradient(circle at 86% 2%, #e7efd7, transparent 27rem),var(--paper); font-family:'DM Sans',sans-serif; }
 .page { width:min(100% - 40px,1020px); margin:0 auto; padding:82px 0; }
+.site-footer { padding:0 20px 28px; color:var(--muted); text-align:center; font-size:.85rem; line-height:1.6; }
+.site-footer a { color:inherit; text-underline-offset:3px; }
+.site-footer a:hover { color:var(--green); }
+.site-footer a:focus-visible { outline:2px solid var(--green); outline-offset:3px; }
 .hero { max-width:650px; margin-bottom:52px; }.eyebrow { margin:0 0 15px; color:var(--green); font:500 .72rem 'DM Mono',monospace; letter-spacing:.12em; }
 h1,h2 { margin:0; letter-spacing:-.045em; line-height:.98; } h1 { font:600 clamp(3.25rem,9vw,6.6rem) 'Playfair Display',serif; } h2 { font-size:clamp(1.75rem,4vw,2.65rem); }.hero-description { display:flex; max-width:570px; align-items:flex-start; gap:8px; margin-top:26px; color:var(--muted); font-size:1.08rem; line-height:1.6; }.hero-description p { margin:0; }.info-button { display:grid; width:20px; height:20px; flex:0 0 20px; margin-top:4px; place-items:center; border:1px solid currentColor; border-radius:50%; background:transparent; color:var(--green); font:700 .75rem Georgia,serif; cursor:pointer; }.info-button:hover { background:#e7f1d8; }.privacy-note { max-width:570px; margin:13px 0 0; padding:12px 14px; border:1px solid #c6d99a; border-radius:9px; background:#f4f9df; color:#3d5847; font-size:.9rem; line-height:1.5; }
 .language-toggle { margin-top:22px; padding:8px 12px; border:1px solid var(--line); border-radius:999px; background:transparent; color:var(--green); font:600 .8rem 'DM Sans',sans-serif; cursor:pointer; }.language-toggle:hover { border-color:var(--green); background:#f3f8e7; }

@@ -68,6 +68,7 @@ function saveIgnoredAccounts() {
 
 const translations = {
   pt: {
+    developedBy: 'Desenvolvido por',
     heroEyebrow: 'ANÁLISE 100% LOCAL',
     heroTitle: 'Quem te segue<br />de volta?',
     heroDescription: 'Importe o arquivo baixado do Instagram e compare suas listas sem enviar seus dados para ninguém.',
@@ -118,6 +119,7 @@ const translations = {
     switchLanguageLabel: 'Mudar para inglês'
   },
   en: {
+    developedBy: 'Developed by',
     heroEyebrow: '100% LOCAL ANALYSIS',
     heroTitle: 'Who follows you<br />back?',
     heroDescription: 'Import your Instagram download and compare your lists without sending your data anywhere.',

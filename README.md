@@ -17,6 +17,8 @@ Only the usernames you mark to ignore are saved locally, in this browser's `loca
 
 Ignored accounts remain ignored when you reload the site and import a new ZIP, including accounts absent from an intermediate export. Preferences apply to all ZIPs opened at the same site address in the same browser profile, without separating Instagram accounts. Matching uses usernames, so a renamed account must be marked again.
 
+Open tabs synchronize ignored accounts automatically. Each edit reads the latest saved preferences; browsers supporting the Web Locks API also serialize writes between tabs to preserve simultaneous changes.
+
 ## Deployment
 
 The project has no Node.js, database, or backend requirement. Publish the repository as a static site through GitHub Pages, Cloudflare Pages, or Vercel.
@@ -30,3 +32,7 @@ The entry point is `index.html`. To test it locally, open it in a browser or ser
 - Accounts you do not follow.
 - Username search, profile links, and copying the visible list.
 - Ignore checkboxes and filters, with browser-local preferences preserved across imports.
+
+## Browser regression checks
+
+Development only: install Playwright with `python -m pip install playwright` and a browser with `python -m playwright install chromium`, then run `python tests/ignored-accounts.py`. The test also supports a system `chromium` executable. It covers multi-tab additions/removals, stale tabs, simultaneous writes with Web Locks, cleared preferences, reimports, and session choices when writes fail. The app itself needs no Python or Playwright dependency.

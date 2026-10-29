@@ -17,7 +17,8 @@ let analysis = { following: 0, followers: 0, notFollowing: [], youDontFollow: []
 let selectedList = 'not-following';
 let language = 'pt';
 let storageUnavailable = false;
-const ignoredAccounts = loadIgnoredAccounts();
+let ignoredAccounts = loadIgnoredAccounts() ?? new Set();
+const pendingIgnoredChanges = new Map();
 
 function loadIgnoredAccounts() {
   let stored;
@@ -25,7 +26,7 @@ function loadIgnoredAccounts() {
     stored = localStorage.getItem(ignoredAccountsKey);
   } catch {
     storageUnavailable = true;
-    return new Set();
+    return null;
   }
 
   try {
@@ -39,13 +40,30 @@ function loadIgnoredAccounts() {
   }
 }
 
+function syncIgnoredAccounts() {
+  const stored = loadIgnoredAccounts();
+  if (stored !== null) {
+    ignoredAccounts = stored;
+    if (!pendingIgnoredChanges.size) storageUnavailable = false;
+  }
+  // Keep session-only choices when browser storage rejects a write.
+  for (const [user, ignored] of pendingIgnoredChanges) {
+    if (ignored) ignoredAccounts.add(user);
+    else ignoredAccounts.delete(user);
+  }
+}
+
 function saveIgnoredAccounts() {
+  // Read inside the lock so another tab's changes cannot be overwritten.
+  syncIgnoredAccounts();
   try {
     localStorage.setItem(ignoredAccountsKey, JSON.stringify([...ignoredAccounts]));
+    pendingIgnoredChanges.clear();
     storageUnavailable = false;
   } catch {
     storageUnavailable = true;
   }
+  renderList();
 }
 
 const translations = {
@@ -387,9 +405,21 @@ ignoreFilter.addEventListener('change', renderList);
 accounts.addEventListener('change', event => {
   const checkbox = event.target;
   if (!checkbox.matches('input[data-user]')) return;
+  pendingIgnoredChanges.set(checkbox.dataset.user, checkbox.checked);
   if (checkbox.checked) ignoredAccounts.add(checkbox.dataset.user);
   else ignoredAccounts.delete(checkbox.dataset.user);
-  saveIgnoredAccounts();
+  renderList();
+  if (navigator.locks?.request) {
+    navigator.locks.request(ignoredAccountsKey, saveIgnoredAccounts).catch(saveIgnoredAccounts);
+  } else {
+    saveIgnoredAccounts();
+  }
+});
+
+window.addEventListener('storage', event => {
+  if (event.key !== ignoredAccountsKey && event.key !== null) return;
+  if (event.storageArea !== localStorage) return;
+  syncIgnoredAccounts();
   renderList();
 });
 

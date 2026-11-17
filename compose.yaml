@@ -1,0 +1,14 @@
+name: instafollowers
+
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    networks:
+      proxy:
+        aliases:
+          - instafollowers
+
+networks:
+  proxy:
+    external: true

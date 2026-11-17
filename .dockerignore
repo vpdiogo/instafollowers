@@ -1,0 +1,7 @@
+**
+!Dockerfile
+!index.html
+!app.js
+!style.css
+!vendor/
+!vendor/**
